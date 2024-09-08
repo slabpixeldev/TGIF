@@ -7,9 +7,8 @@
       "./node_modules/@types",
       "./node_modules/@figma"
     ],
-    "module": "commonjs",
-    "outDir": "./dist",
-    "rootDir": ".",
-    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   }
 }

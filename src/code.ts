@@ -1,6 +1,4 @@
 import { fromByteArray } from 'base64-js';
-try {
-  console.log("Plugin code started");
 
 figma.ui.onmessage = async (msg) => {
   console.log("Message received in plugin", msg);
@@ -54,7 +52,4 @@ console.log("Plugin code initialized");
 figma.ui.postMessage({ type: 'plugin-ready' });
 
 figma.showUI(__html__);
-figma.ui.resize(300, 400);
-} catch (error) {
-  console.error("Error initializing plugin:", error);
-}
+figma.ui.resize(300, 200);
