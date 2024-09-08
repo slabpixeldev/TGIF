@@ -1,17 +1,32 @@
-<h2>Rectangle Creator</h2>
-<p>Count: <input id="count" value="5"></p>
-<button id="create">Create</button>
-<button id="cancel">Cancel</button>
-<script>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TGIF</title>
+    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+    <script>
+      console.log("GIF.js loaded:", typeof GIF !== 'undefined');
+    </script>
+  </head>
+  <body>
+    <h1>TGIF</h1>
+    <!-- Interval Input -->
+    <label for="interval">Interval (ms):</label>
+    <input type="number" id="interval" value="500" min="100" />
 
-document.getElementById('create').onclick = () => {
-  const textbox = document.getElementById('count');
-  const count = parseInt(textbox.value, 10);
-  parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*')
-}
+    <!-- Export Size Selection -->
+    <label for="size">Export Size:</label>
+    <select id="size">
+      <option value="0.5">0.5x</option>
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="3">3x</option>
+    </select>
 
-document.getElementById('cancel').onclick = () => {
-  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
-}
+    <!-- Export Button -->
+    <button id="export">Export GIF</button>
 
-</script>
+    <script src="ui.js"></script>
+  </body>
+</html>

@@ -1,11 +1,16 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": ["es6"],
+    "lib": ["es6", "DOM"],
     "strict": true,
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/@figma"
-    ]
+    ],
+    "skipLibCheck": true,
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "jsx": "react-jsx",
   }
 }
