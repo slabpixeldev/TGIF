@@ -1,32 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TGIF</title>
-    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
-    <script>
-      console.log("GIF.js loaded:", typeof GIF !== 'undefined');
-    </script>
-  </head>
-  <body>
-    <h1>TGIF</h1>
-    <!-- Interval Input -->
-    <label for="interval">Interval (ms):</label>
-    <input type="number" id="interval" value="500" min="100" />
 
-    <!-- Export Size Selection -->
-    <label for="size">Export Size:</label>
-    <select id="size">
-      <option value="0.5">0.5x</option>
-      <option value="1">1x</option>
-      <option value="2">2x</option>
-      <option value="3">3x</option>
-    </select>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TGIF</title>
+  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"
+    onerror="console.error('Failed to load GIF.js')"></script>
+  <script>
+    console.log("GIF.js loaded:", typeof GIF !== 'undefined');
+    window.GIF = GIF;
+  </script>
+</head>
 
-    <!-- Export Button -->
-    <button id="export">Export GIF</button>
+<body>
+  <h1>TGIF</h1>
+  <!-- Interval Input -->
+  <label for="interval">Interval (ms):</label>
+  <input type="number" id="interval" value="500" min="100" />
 
-    <script src="ui.js"></script>
-  </body>
+  <!-- Export Size Selection -->
+  <label for="size">Export Size:</label>
+  <select id="size">
+    <option value="0.5">0.5x</option>
+    <option value="1">1x</option>
+    <option value="2">2x</option>
+    <option value="3">3x</option>
+  </select>
+
+  <!-- Export Button -->
+  <button id="export">Export GIF</button>
+  <script>
+    console.log("After ui.js loaded");
+    // You can add a timeout to check if the ui.js script has executed
+    setTimeout(() => {
+      if (typeof exportGif === 'undefined') {
+        console.error("ui.js might not have loaded correctly");
+      } else {
+        console.log("ui.js loaded and executed successfully");
+      }
+    }, 100);
+  </script>
+  <script>
+    console.log("UI script started");
+    function exportGif() {
+      console.log("Export button clicked");
+      const interval = document.getElementById("interval").value;
+      const scale = document.getElementById("size").value;
+
+      console.log("Sending message to plugin", { interval, scale });
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: "export-gif",
+            interval: parseInt(interval, 10),
+            scale: scale
+          }
+        },
+        "*"
+      );
+      console.log("Message sent to plugin");
+    }
+
+    document.getElementById("export").onclick = exportGif;
+
+    window.onmessage = (event) => {
+      console.log("Message received in UI:", event.data.pluginMessage);
+      const message = event.data.pluginMessage;
+      if (message.type === 'create-gif') {
+        console.log("Creating GIF");
+        if (typeof window.GIF === 'undefined') {
+          console.error('GIF is not defined. Make sure gif.js is loaded correctly.');
+          return;
+        }
+        console.log("GIF object is available");
+        const gif = new window.GIF({
+          workers: 2,
+          quality: 10,
+        });
+
+        console.log("Processing frames");
+        // Change message.frames to message.frameData
+        message.frameData.forEach((frameData, index) => {
+          console.log(`Processing frame ${index + 1}`);
+          const uint8Array = new Uint8Array(frameData);
+          const blob = new Blob([uint8Array], { type: 'image/png' });
+          const url = URL.createObjectURL(blob);
+          const img = new Image();
+          img.onload = () => {
+            gif.addFrame(img, { delay: message.interval });
+            URL.revokeObjectURL(url);
+            console.log(`Frame ${index + 1} added to GIF`);
+            if (index === message.frameData.length - 1) {
+              console.log("All frames processed, rendering GIF");
+              gif.render();
+            }
+          };
+          img.onerror = (error) => {
+            console.error(`Error loading frame ${index + 1}:`, error);
+          };
+          img.src = url;
+        });
+
+        gif.on('finished', (blob) => {
+          console.log("GIF rendering finished");
+          const reader = new FileReader();
+          reader.onload = () => {
+            const base64String = reader.result;
+            console.log("Sending finished GIF back to plugin");
+            parent.postMessage({ pluginMessage: { type: 'gif-created', base64Data: base64String } }, '*');
+            // Create download link
+            const link = document.createElement('a');
+            link.href = base64String;
+            link.download = 'animation.gif';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            console.log("GIF download initiated");
+          };
+          reader.onerror = (error) => {
+            console.error("Error reading GIF blob:", error);
+          };
+          reader.readAsDataURL(blob);
+        });
+
+        gif.on('progress', (progress) => {
+          console.log(`GIF rendering progress: ${(progress * 100).toFixed(2)}%`);
+        });
+      }
+      if (message.type === 'plugin-ready') {
+        console.log("Plugin is ready");
+      }
+    };
+    console.log("UI script finished loading");
+  </script>
+</body>
+
 </html>
