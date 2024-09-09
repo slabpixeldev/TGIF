@@ -29,8 +29,8 @@ figma.ui.onmessage = async (msg) => {
       type: 'frames-exported',
       images: frameImagesBase64,
       interval,
-      width: selectedFrames[0].width * scale,  // Add this
-      height: selectedFrames[0].height * scale // Add this
+      width: selectedFrames[0].width * scale,
+      height: selectedFrames[0].height * scale
     });
   }
 };
