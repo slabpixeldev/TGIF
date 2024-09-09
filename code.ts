@@ -36,4 +36,4 @@ figma.ui.onmessage = async (msg) => {
 };
 
 figma.showUI(__html__);
-figma.ui.resize(300, 300);
+figma.ui.resize(300, 270);

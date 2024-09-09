@@ -15,6 +15,21 @@
       align-items: left;
     }
 
+    .container {
+      display: flex;
+      flex-direction: row;
+      align-items: left;
+      gap: 8px;
+    }
+
+    .item {
+      display: flex;
+      flex-direction: column;
+      align-items: left;
+      gap: 0px;
+      width: 100%;
+    }
+
     h1 {
       margin-bottom: 8px;
       font-size: 32px;
@@ -27,6 +42,13 @@
       font-size: 12px;
     }
 
+    #status {
+      margin-top: 24px;
+      font-size: 14px;
+      text-align: center;
+      color: #868686;
+    } 
+
     input, select {
       padding: 10px;
       margin-bottom: 8px;
@@ -34,11 +56,18 @@
       border-radius: 4px;
       width: 100%;
       max-width: 300px;
+      height: 40px;
       box-sizing: border-box;
+      border-radius: 4px;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #6200ea;
     }
 
     button {
-      padding: 10px 20px;
+      padding: 14px 24px;
       background-color: #6200ea;
       color: white;
       width: 100%;
@@ -67,27 +96,37 @@
 
 <body>
   <h1>TGIF</h1>
-  <!-- Interval Input -->
-  <label for="interval">Interval (ms)</label>
-  <input type="number" id="interval" value="500" min="100" />
 
-  <!-- Export Size Selection -->
-  <label for="size">Export Size</label>
-  <select id="size">
-    <option value="0.5">0.5x</option>
-    <option value="1">1x</option>
-    <option value="2">2x</option>
-    <option value="3">3x</option>
-  </select>
+  <div class="container">
+    <div class="item">
+      <!-- Interval Input -->
+      <label for="interval">Interval (ms)</label>
+      <input type="number" id="interval" value="500" min="100" />
+    </div>
+
+    <div class="item">
+      <!-- Export Size Selection -->
+    <label for="size">Export Size</label>
+    <select id="size">
+      <option value="0.5">0.5x</option>
+      <option value="1">1x</option>
+      <option value="2">2x</option>
+      <option value="3">3x</option>
+      </select>
+    </div>
+  </div>
 
   <!-- Export Button -->
   <button id="export">Export GIF</button>
+  <p id="status"></p>
 
   <!-- Script to handle the export -->
   <script>
     document.getElementById("export").onclick = () => {
       const interval = document.getElementById("interval").value;
       const scale = document.getElementById("size").value;
+      const status = document.getElementById("status");
+      status.textContent = "Please select at least 2 frames with the same size.";
 
       parent.postMessage(
         {
@@ -152,12 +191,16 @@
           document.body.removeChild(link);
           exportButton.textContent = 'Export GIF';
           exportButton.disabled = false;
+          const status = document.getElementById("status");
+          status.textContent = "GIF created successfully";
         });
 
         gif.on('error', (error) => {
           console.error('Error creating GIF:', error);
           exportButton.textContent = 'Export GIF';
           exportButton.disabled = false;
+          const status = document.getElementById("status");
+          status.textContent = "Error creating GIF";
         });
       }
     };
