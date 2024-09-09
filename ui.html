@@ -31,24 +31,10 @@
   <!-- Export Button -->
   <button id="export">Export GIF</button>
   <script>
-    console.log("After ui.js loaded");
-    // You can add a timeout to check if the ui.js script has executed
-    setTimeout(() => {
-      if (typeof exportGif === 'undefined') {
-        console.error("ui.js might not have loaded correctly");
-      } else {
-        console.log("ui.js loaded and executed successfully");
-      }
-    }, 100);
-  </script>
-  <script>
-    console.log("UI script started");
-    function exportGif() {
-      console.log("Export button clicked");
+    document.getElementById("export").onclick = () => {
       const interval = document.getElementById("interval").value;
       const scale = document.getElementById("size").value;
 
-      console.log("Sending message to plugin", { interval, scale });
       parent.postMessage(
         {
           pluginMessage: {
@@ -59,80 +45,40 @@
         },
         "*"
       );
-      console.log("Message sent to plugin");
-    }
-
-    document.getElementById("export").onclick = exportGif;
+    };
 
     window.onmessage = (event) => {
-      console.log("Message received in UI:", event.data.pluginMessage);
       const message = event.data.pluginMessage;
-      if (message.type === 'create-gif') {
-        console.log("Creating GIF");
-        if (typeof window.GIF === 'undefined') {
-          console.error('GIF is not defined. Make sure gif.js is loaded correctly.');
-          return;
-        }
-        console.log("GIF object is available");
-        const gif = new window.GIF({
+
+      if (message.type === 'frames-exported') {
+        const { images, interval } = message;
+
+        // Generate GIF using gif.js
+        const gif = new GIF({
           workers: 2,
           quality: 10,
         });
 
-        console.log("Processing frames");
-        // Change message.frames to message.frameData
-        message.frameData.forEach((frameData, index) => {
-          console.log(`Processing frame ${index + 1}`);
-          const uint8Array = new Uint8Array(frameData);
-          const blob = new Blob([uint8Array], { type: 'image/png' });
-          const url = URL.createObjectURL(blob);
+        images.forEach((imageData) => {
           const img = new Image();
+          img.src = imageData;
           img.onload = () => {
-            gif.addFrame(img, { delay: message.interval });
-            URL.revokeObjectURL(url);
-            console.log(`Frame ${index + 1} added to GIF`);
-            if (index === message.frameData.length - 1) {
-              console.log("All frames processed, rendering GIF");
-              gif.render();
-            }
+            gif.addFrame(img, { delay: interval });
           };
-          img.onerror = (error) => {
-            console.error(`Error loading frame ${index + 1}:`, error);
-          };
-          img.src = url;
         });
 
         gif.on('finished', (blob) => {
-          console.log("GIF rendering finished");
-          const reader = new FileReader();
-          reader.onload = () => {
-            const base64String = reader.result;
-            console.log("Sending finished GIF back to plugin");
-            parent.postMessage({ pluginMessage: { type: 'gif-created', base64Data: base64String } }, '*');
-            // Create download link
-            const link = document.createElement('a');
-            link.href = base64String;
-            link.download = 'animation.gif';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            console.log("GIF download initiated");
-          };
-          reader.onerror = (error) => {
-            console.error("Error reading GIF blob:", error);
-          };
-          reader.readAsDataURL(blob);
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'animation.gif';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         });
 
-        gif.on('progress', (progress) => {
-          console.log(`GIF rendering progress: ${(progress * 100).toFixed(2)}%`);
-        });
-      }
-      if (message.type === 'plugin-ready') {
-        console.log("Plugin is ready");
+        gif.render();
       }
     };
-    console.log("UI script finished loading");
   </script>
 </body>
 
