@@ -29,9 +29,11 @@ figma.ui.onmessage = async (msg) => {
       type: 'frames-exported',
       images: frameImagesBase64,
       interval,
+      width: selectedFrames[0].width * scale,  // Add this
+      height: selectedFrames[0].height * scale // Add this
     });
   }
 };
 
 figma.showUI(__html__);
-figma.ui.resize(300, 400);
+figma.ui.resize(300, 300);
