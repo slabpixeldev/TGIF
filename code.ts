@@ -11,6 +11,7 @@ figma.ui.onmessage = async (msg) => {
     // Get the interval and scale from the UI
     const interval = msg.interval;
     const scale = parseFloat(msg.scale);
+    const quality = msg.quality;
 
     // Export frames and convert to base64
     const frameImagesBase64 = await Promise.all(
@@ -29,6 +30,7 @@ figma.ui.onmessage = async (msg) => {
       type: 'frames-exported',
       images: frameImagesBase64,
       interval,
+      quality,
       width: selectedFrames[0].width * scale,
       height: selectedFrames[0].height * scale
     });
